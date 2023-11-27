@@ -595,6 +595,27 @@ ggplot(data, aes(x = Light.sleep.percentage, y = Sleep.efficiency)) +
   theme_minimal()
 ```
 
+
+```{r}
+ggplot(data, aes(x = REM.sleep.percentage
+, y = Sleep.efficiency)) +
+  geom_point(alpha = 0.7, size = 3, color = "skyblue") +
+  geom_jitter(width = 0.2, height = 0, color = "darkblue", alpha = 0.3) +
+  geom_smooth(method = "loess", color = "darkred", size = 1.2, se = FALSE) +
+  labs(
+    title = "Relationship Between REM.sleep.percentage
+ and Sleep Efficiency",
+    x = "REM.sleep.percentage",
+    y = "Sleep Efficiency"
+  ) +
+  theme_minimal()
+```
+
+
+
+
+
+
 ```{r}
 ggplot(data, aes(x = Exercise.frequency, y = Sleep.efficiency)) +
   geom_point(alpha = 0.7, size = 3, color = "skyblue") +
@@ -653,6 +674,27 @@ ggplot(data, aes(x = Sleep.duration, y = Sleep.efficiency, color = Gender)) +
   theme(legend.position = "top") +
   facet_wrap(~ Gender, scales = "free")
 
+
+
+
+```
+
+```{r}
+
+
+library(ggplot2)
+
+
+data$age_bins <- cut(data$Age, breaks = seq(0, 100, by = 20), right = FALSE)
+
+ggplot(data, aes(x = Sleep.duration, y = Sleep.efficiency, color = Gender)) +
+  geom_point() +
+  geom_smooth(aes(group = Gender), method = "loess", se = FALSE, size = 1, linetype = 'solid') +
+  scale_color_manual(values = c("0" = "blue", "1" = "black"),labels = c("0" = "Female", "1" = "Male")) +
+  labs(x = "Sleep Duration", y = "Sleep Efficiency") +
+  ggtitle("Relationship Between Sleep Duration and Sleep Efficiency by Gender") +
+  theme_minimal() +
+  theme(legend.position = "top")
 
 
 
@@ -731,21 +773,27 @@ ggplot(data, aes(x = Awakenings, y = Caffeine.consumption, color = Sleep.efficie
   theme_minimal()
 
 ```
+```{r}
+head(data)
+```
+
+
 
 # Trying another plot for the above graph
 ```{r}
 library(ggplot2)
+data$Smoking.Caffine.Alcohol = ifelse(data$Smoking.status == "Yes" | (data$Caffeine.consumption != 'NA' & data$Caffeine.consumption > 1) | (data$Alcohol.consumption != 'NA' & data$Alcohol.consumption > 1) , 1, 0)
 
-ggplot(data, aes(x = Caffeine.consumption, y = Sleep.efficiency, color = Sleep.efficiency)) +
+ggplot(data, aes(x = Sleep.duration, y = Sleep.efficiency, color = Awakenings)) +
   geom_point(size = 3, alpha = 0.7) +
   geom_jitter() +
   geom_smooth(method = "loess", se = FALSE, size = 1, linetype = 'solid') +
-  xlab("Caffeine Consumption") +
+  xlab("Sleep Duration") +
   ylab("Sleep Efficiency") +
-  labs(color = "Sleep Efficiency") +
-  ggtitle("Relation Between Caffeine Consumption and Sleep Efficiency by Awakenings") +  # Add the title here
+  labs(color = "Awakenings") +
+  ggtitle("Relationship between Sleep Duration & Efficiency by Awakenings faceted by Exercise") +  # Add the title here
   theme_minimal() +
-  facet_wrap(~ Awakenings, scales = "free")
+  facet_wrap(~ Exercise.frequency, scales = "free")
 
 
 ```
@@ -774,6 +822,9 @@ ggplot(data, aes(x = Awakenings, y = Caffeine.consumption, color = factor(Smokin
   geom_smooth(method = "loess", se = FALSE, size = 1, linetype = 'solid') +
   xlab("Awakenings") +
   ylab("Caffeine Consumption") +
+
+  scale_color_manual(values = c("0" = "blue", "1" = "black"),
+                     labels = c("0" = "No Smoking", "1" = "Smoking")) +
   labs(color = "Smoking.status") +
   theme_minimal() +
   facet_grid(Smoking.status ~ ., scales = "free_x") +  # Facet by Smoking Status on the x-axis and Awakenings on the y-axis
@@ -1227,3 +1278,182 @@ plot(sleep.rlm.model, which = 1, main = "Residuals Plot - RLM")
 par(mfrow = c(1, 1))
 
 ```
+
+
+
+```{r}
+head(df_1)
+```
+
+```{r}
+# Fit existing models
+model_without_interactions <- lm(Sleep.efficiency ~ Gender + Caffeine.consumption + Alcohol.consumption + Smoking.status + Exercise.frequency, data = df_1)
+model_with_interactions <- lm(Sleep.efficiency ~ (Gender + Caffeine.consumption + Alcohol.consumption + Smoking.status + Exercise.frequency)^2, data = df_1)
+
+
+model_mixed <- lm(Sleep.efficiency ~ 
+                    (Gender + Caffeine.consumption + Alcohol.consumption + 
+                       Smoking.status + Exercise.frequency) +
+                    Gender * Caffeine.consumption * Alcohol.consumption 
+                  * Smoking.status * Exercise.frequency
+                    , data = df_1)
+
+# Fit robust linear models with Tukey's bisquare model
+robust_model_without_interactions <- rlm(Sleep.efficiency ~ Gender + Caffeine.consumption + Alcohol.consumption + Smoking.status + Exercise.frequency, data = df_1, psi = psi.bisquare)
+robust_model_with_interactions <- rlm(Sleep.efficiency ~ (Gender + Caffeine.consumption + Alcohol.consumption + Smoking.status + Exercise.frequency)^2, data = df_1, psi = psi.bisquare)
+robust_model_mixed <- rlm(Sleep.efficiency ~ (Gender + Caffeine.consumption + Alcohol.consumption + Smoking.status + Exercise.frequency) +
+                           Gender * Caffeine.consumption * Alcohol.consumption * Smoking.status * Exercise.frequency
+                           , data = df_1, psi = psi.bisquare)
+
+# Create a dataframe for R-squared values
+r_squared_df <- data.frame(
+  Model = c("Without Interactions", "With Interactions", "Mixed", "Robust Without Interactions", "Robust With Interactions", "Robust Mixed"),
+  R_Squared = c(
+    summary(model_without_interactions)$r.squared, summary(model_with_interactions)$r.squared, summary(model_mixed)$r.squared,
+    summary(robust_model_without_interactions)$r.squared, summary(robust_model_with_interactions)$r.squared, summary(robust_model_mixed)$r.squared
+  )
+)
+
+r_squared_robust_without_interactions <- 1 - (sum(robust_model_without_interactions$residuals^2) / sum((df_1$Sleep.efficiency - mean(df_1$Sleep.efficiency))^2))
+r_squared_robust_with_interactions <- 1 - (sum(robust_model_with_interactions$residuals^2) / sum((df_1$Sleep.efficiency - mean(df_1$Sleep.efficiency))^2))
+r_squared_robust_mixed <- 1 - (sum(robust_model_mixed$residuals^2) / sum((df_1$Sleep.efficiency - mean(df_1$Sleep.efficiency))^2))
+
+# Add R-squared values for robust models to the dataframe
+r_squared_df$R_Squared[4] <- r_squared_robust_without_interactions
+r_squared_df$R_Squared[5] <- r_squared_robust_with_interactions
+r_squared_df$R_Squared[6] <- r_squared_robust_mixed
+
+# Print R-squared values
+cat("R-squared values:\n")
+print(r_squared_df)
+
+# Plot the graphs
+par(mfrow = c(2, 3), mar = c(4, 4, 2, 1))
+
+# Function to add loess line to a plot
+add_loess_line <- function(x, y) {
+  lines(lowess(x, y), col = "red")
+}
+
+# Without Interactions
+df_1$linear.se.predicted_without_interactions <- model_without_interactions$fitted.values
+plot(df_1$Sleep.efficiency, df_1$linear.se.predicted_without_interactions, 
+     main = "Without Interactions", xlab = "Actual Sleep Efficiency", ylab = "Predicted Sleep Efficiency", col = "skyblue")
+add_loess_line(df_1$Sleep.efficiency, df_1$linear.se.predicted_without_interactions)
+
+# With Interactions
+df_1$linear.se.predicted_with_interactions <- model_with_interactions$fitted.values
+plot(df_1$Sleep.efficiency, df_1$linear.se.predicted_with_interactions, 
+     main = "With Interactions", xlab = "Actual Sleep Efficiency", ylab = "Predicted Sleep Efficiency", col = "skyblue")
+add_loess_line(df_1$Sleep.efficiency, df_1$linear.se.predicted_with_interactions)
+
+# Mixed
+df_1$linear.se.predicted_mixed <- model_mixed$fitted.values
+plot(df_1$Sleep.efficiency, df_1$linear.se.predicted_mixed, 
+     main = "Mixed", xlab = "Actual Sleep Efficiency", ylab = "Predicted Sleep Efficiency", col = "skyblue")
+add_loess_line(df_1$Sleep.efficiency, df_1$linear.se.predicted_mixed)
+
+# Robust Without Interactions
+df_1$robust.predicted_without_interactions <- robust_model_without_interactions$fitted.values
+plot(df_1$Sleep.efficiency, df_1$robust.predicted_without_interactions, 
+     main = "Robust Without Interactions", xlab = "Actual Sleep Efficiency", ylab = "Predicted Sleep Efficiency", col = "orange")
+add_loess_line(df_1$Sleep.efficiency, df_1$robust.predicted_without_interactions)
+
+# Robust With Interactions
+df_1$robust.predicted_with_interactions <- robust_model_with_interactions$fitted.values
+plot(df_1$Sleep.efficiency, df_1$robust.predicted_with_interactions, 
+     main = "Robust With Interactions", xlab = "Actual Sleep Efficiency", ylab = "Predicted Sleep Efficiency", col = "orange")
+add_loess_line(df_1$Sleep.efficiency, df_1$robust.predicted_with_interactions)
+
+# Robust Mixed
+df_1$robust.predicted_mixed <- robust_model_mixed$fitted.values
+plot(df_1$Sleep.efficiency, df_1$robust.predicted_mixed, 
+     main = "Robust Mixed", xlab = "Actual Sleep Efficiency", ylab = "Predicted Sleep Efficiency", col = "orange")
+add_loess_line(df_1$Sleep.efficiency, df_1$robust.predicted_mixed)
+
+
+
+```
+# Best Model
+
+```{r}
+plot_data <- data.frame(
+  Actual = df_1$Sleep.efficiency,
+  Predicted = predict(model_mixed)
+)
+
+# Plot actual vs predicted values with loess line
+ggplot(plot_data, aes(x = Actual, y = Predicted)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "loess", se = FALSE, color = "red") +
+  ggtitle("Actual vs Predicted Sleep Efficiency (Mixed Model)") +
+  labs(x = "Actual Sleep Efficiency", y = "Predicted Sleep Efficiency")
+
+# Get the residuals from the mixed model
+residuals_mixed <- residuals(model_mixed)
+
+# Plot QQ plot of residuals
+qqnorm(residuals_mixed)
+qqline(residuals_mixed, col = "red")
+
+# Add title and labels
+
+xlabel <- expression("Theoretical Quantiles")
+ylabel <- expression("Sample Quantiles")
+mtext(xlabel, side = 1, line = 3)
+mtext(ylabel, side = 2, line = 3)
+
+
+
+
+
+```
+
+
+
+
+```{r}
+df_1$Smoking.Caffine.Alcohol = ifelse(df_1$Smoking.status == "Yes" | (df_1$Caffeine.consumption != 'NA' & df_1$Caffeine.consumption > 1) | (df_1$Alcohol.consumption != 'NA' & df_1$Alcohol.consumption > 1) , 1, 0)
+```
+
+
+```{r}
+library(ggplot2)
+
+# Create a data frame with actual and predicted values
+plot_data <- data.frame(
+  Actual = df_1$Sleep.efficiency,
+  Predicted = df_1$linear.se.predicted_mixed,
+  Exercise.frequency = factor(df_1$Exercise.frequency),
+  Smoking.Caffine.Alcohol = factor(df_1$Smoking.Caffine.Alcohol, labels = c("No Smoking", "Smoking, Alcohol, Caffeine"))
+)
+
+# Create the scatter plot with facets and color by Smoking.Caffine.Alcohol
+ggplot(plot_data, aes(x = Actual, y = Predicted)) +
+  geom_point(aes(color = Smoking.Caffine.Alcohol), show.legend = TRUE) +
+  geom_smooth(method = "loess", se = FALSE, size = 1, linetype = 'solid', color = 'red') +
+  labs(x = "Actual Sleep Efficiency", y = "Predicted Sleep Efficiency") +
+  scale_color_manual(values = c("black", "blue")) +
+  facet_wrap(~ Exercise.frequency, scales = "free") +
+  ggtitle("Actual vs Predicted Sleep Efficiency by Exercise Frequency")
+
+
+```
+
+```{r}
+head(df_1)
+```
+```{r}
+library(ggplot2)
+
+ggplot(df_2, aes(x = Deep.sleep.percentage, y = Sleep.efficiency)) +
+  geom_point(alpha = 0.7) +
+  geom_smooth(method = "loess", se = FALSE) +
+  ggtitle("Sleep Efficiency vs Deep Sleep Percentage Faceted by Exercise Frequency") +
+  labs(x = "Deep Sleep Percentage", y = "Sleep Efficiency") +
+  facet_wrap(~ Exercise.frequency)
+
+```
+
+
+
