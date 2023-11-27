@@ -1,0 +1,1229 @@
+---
+title: "Final_Project_Draft"
+author: "Jash Shah Prem Amal"
+date: "2023-11-24"
+output: html_document
+---
+
+```{r}
+data<-read.csv('Sleep_Efficiency.csv')
+```
+
+```{r}
+head(data)
+```
+```{r}
+#install.packages("devtools")
+
+```
+
+
+```{r}
+#devtools::install_github("vqv/ggbiplot")
+```
+
+```{r}
+#install.packages('ggbiplot')
+library(ggplot2)
+library(vcd)
+library(tidyverse)
+library(ade4)
+library(broom)
+library(rstanarm)
+library(caret)
+#library(ggbiplot)
+```
+
+
+
+```{r}
+
+```
+
+# Initial Exploratory Data Analysis
+```{r}
+histogram_age <- ggplot(data, aes(x = Age)) +
+  geom_histogram(binwidth = 5, fill = "skyblue", color = "black", alpha = 0.7) +
+ geom_density(aes(y = ..count.. * 5), color = "red", fill = "red", alpha = 0.2) + 
+  ggtitle("Histogram and KDE of  Age") +
+  labs(x = "Age", y = "Frequency") +
+  theme_minimal()
+print(histogram_age)
+
+# Empirical Cumulative Distribution Function (ECDF) of Age
+ecdf_age <- ggplot(data, aes(x = Age)) +
+  stat_ecdf(geom = "step", color = "blue") +
+  ggtitle("ECDF of Age") +
+  labs(x = "Age", y = "Cumulative Probability") +
+  theme_minimal()
+print(ecdf_age)
+
+```
+Summary Statistics:
+
+Mean Age: The mean age is approximately 42.85 years.
+Median Age (50th Percentile): The median age is approximately 40 years.
+Interquartile Range (IQR): The IQR spans from around 29 years to 53 years.
+Distribution:
+
+The histogram indicates that the majority of individuals fall between the ages of 20 and 60.
+
+Outliers:
+
+There are a few instances of individuals aged 65 and 68, which could be considered outliers depending on the context of your analysis.
+Age Range:
+
+The ages range from as low as 9 years to as high as 69 years, covering a broad spectrum.
+Distribution Shape:
+
+The ECDF plot shows a cumulative distribution of ages, and you can observe how quickly the ages accumulate.
+
+
+
+
+
+
+# Analysis of Gender
+```{r}
+gender_plot <- ggplot(data, aes(x = Gender, fill = factor(Gender))) +
+  geom_bar(color = "black", alpha = 0.7) +
+  ggtitle("Distribution of Gender") +
+  labs(x = "Gender", y = "Count") +
+  scale_fill_manual(values = c("skyblue", "skyblue")) +  
+  theme_minimal() +
+  theme(legend.position = "none")  
+
+print(gender_plot)
+```
+The dataset is fairly balanced between the genders
+```{r}
+# Histogram of Sleep Duration
+histogram_sleep_duration <- ggplot(data, aes(x = Sleep.duration)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black", alpha = 0.7) +
+ geom_density(aes(y = ..count.. * 1), color = "red", fill = "red", alpha = 0.2) + 
+  ggtitle("Histogram and KDE of  Sleep Duration") +
+  labs(x = "Sleep Duration", y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 10))  # Adjust axis text size
+
+print(histogram_sleep_duration)
+
+# Empirical Cumulative Distribution Function (ECDF) of Sleep Duration
+ecdf_sleep_duration <- ggplot(data, aes(x = Sleep.duration)) +
+  stat_ecdf(geom = "step", color = "blue") +
+  ggtitle("ECDF of Sleep Duration") +
+  labs(x = "Sleep Duration", y = "Cumulative Probability") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 10))  # Adjust axis text size
+
+print(ecdf_sleep_duration)
+
+```
+From the provided "Sleep duration" dataset, we can observe the following summary:
+
+1. **Central Tendency:**
+   - The mean sleep duration appears to be around 7.5 hours, indicating that, on average, individuals in the dataset tend to sleep for this duration.
+   - The distribution seems relatively symmetric.
+
+2. **Variability:**
+   - The sleep duration varies, with values ranging from 5 to 10 hours.
+   - The dataset contains a variety of sleep duration values, suggesting diversity in individuals' sleep patterns.
+
+3. **Distribution Shape:**
+   - The histogram shows that the most common sleep duration is around 7.5 hours.
+   - The distribution has a peak around this central value, and it appears to be somewhat normal or Gaussian.
+
+4. **Outliers:**
+   - There are no extreme outliers in the dataset. Sleep duration values are within a reasonable range for a normal sleep pattern.
+
+5. **ECDF (Empirical Cumulative Distribution Function):**
+   - The ECDF plot shows the cumulative probability of observing a sleep duration less than or equal to a given value.
+   - It helps visualize the distribution of sleep duration and how common different durations are in the dataset.
+
+6. **Summary:**
+   - The dataset suggests that individuals tend to have a relatively consistent sleep duration around 7.5 hours, with some variability.
+   - While most individuals have sleep durations close to the average, there is still diversity in sleep patterns, as indicated by the range of values.
+   - Further analysis, such as correlations with other variables or grouping by categories, could provide additional insights into the factors influencing sleep duration.
+
+Remember that this summary is based on a general overview, and more specific insights can be gained through further statistical analyses or domain-specific considerations.
+
+```{r}
+# Histogram of REM Sleep Percentage
+histogram_rem <- ggplot(data, aes(x = REM.sleep.percentage)) +
+  geom_histogram(binwidth = 5, fill = "skyblue", color = "black", alpha = 0.7) +
+ geom_density(aes(y = ..count.. * 5), color = "red", fill = "red", alpha = 0.2) + 
+  ggtitle("Histogram and KDE of  REM Sleep Percentage") +
+  labs(x = "REM Sleep Percentage", y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(histogram_rem)
+
+# Empirical Cumulative Distribution Function (ECDF) of REM Sleep Percentage
+ecdf_rem <- ggplot(data, aes(x = REM.sleep.percentage)) +
+  stat_ecdf(geom = "step", color = "blue") +
+  ggtitle("ECDF of REM Sleep Percentage") +
+  labs(x = "REM Sleep Percentage", y = "Cumulative Probability") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(ecdf_rem)
+
+```
+
+
+```{r}
+# Histogram of Deep Sleep Percentage
+histogram_deep_sleep <- ggplot(data, aes(x = Deep.sleep.percentage)) +
+  geom_histogram(binwidth = 5, fill = "skyblue", color = "black", alpha = 0.7) +
+ geom_density(aes(y = ..count.. * 5), color = "red", fill = "red", alpha = 0.2) + 
+  ggtitle("Histogram and KDE of  Deep Sleep Percentage") +
+  labs(x = "Deep Sleep Percentage", y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(histogram_deep_sleep)
+
+# Empirical Cumulative Distribution Function (ECDF) of Deep Sleep Percentage
+ecdf_deep_sleep <- ggplot(data, aes(x = Deep.sleep.percentage)) +
+  stat_ecdf(geom = "step", color = "blue") +
+  ggtitle("ECDF of Deep Sleep Percentage") +
+  labs(x = "Deep Sleep Percentage", y = "Cumulative Probability") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(ecdf_deep_sleep)
+
+```
+
+```{r}
+# Histogram of Light Sleep Percentage
+histogram_light_sleep <- ggplot(data, aes(x = Light.sleep.percentage)) +
+  geom_histogram(binwidth = 5, fill = "skyblue", color = "black", alpha = 0.7) +
+ geom_density(aes(y = ..count.. * 5), color = "red", fill = "red", alpha = 0.2) + 
+  ggtitle("Histogram and KDE of  Light Sleep Percentage") +
+  labs(x = "Light Sleep Percentage", y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(histogram_light_sleep)
+
+# Empirical Cumulative Distribution Function (ECDF) of Light Sleep Percentage
+ecdf_light_sleep <- ggplot(data, aes(x = Light.sleep.percentage)) +
+  stat_ecdf(geom = "step", color = "blue") +
+  ggtitle("ECDF of Light Sleep Percentage") +
+  labs(x = "Light Sleep Percentage", y = "Cumulative Probability") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(ecdf_light_sleep)
+
+```
+
+```{r}
+# Histogram of Awakenings
+histogram_awakenings <- ggplot(data, aes(x = Awakenings)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black", alpha = 0.7) +
+ geom_density(aes(y = ..count.. * 1), color = "red", fill = "red", alpha = 0.2) + 
+  ggtitle("Histogram and KDE of  Awakenings") +
+  labs(x = "Awakenings", y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(histogram_awakenings)
+
+# Empirical Cumulative Distribution Function (ECDF) of Awakenings
+ecdf_awakenings <- ggplot(data, aes(x = Awakenings)) +
+  stat_ecdf(geom = "step", color = "blue") +
+  ggtitle("ECDF of Awakenings") +
+  labs(x = "Awakenings", y = "Cumulative Probability") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(ecdf_awakenings)
+
+```
+
+```{r}
+# Histogram of Caffeine consumption
+histogram_caffeine <- ggplot(data, aes(x = Caffeine.consumption)) +
+  geom_histogram(binwidth = 10, fill = "skyblue", color = "black", alpha = 0.7) +
+ geom_density(aes(y = ..count.. * 8), color = "red", fill = "red", alpha = 0.2) + 
+  ggtitle("Histogram and KDE of  Caffeine Consumption") +
+  labs(x = "Caffeine Consumption", y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+
+print(histogram_caffeine)
+
+# Empirical Cumulative Distribution Function (ECDF) of Caffeine consumption
+ecdf_caffeine <- ggplot(data, aes(x = Caffeine.consumption)) +
+  stat_ecdf(geom = "step", color = "blue") +
+  ggtitle("ECDF of Caffeine Consumption") +
+  labs(x = "Caffeine Consumption", y = "Cumulative Probability") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(ecdf_caffeine)
+
+```
+
+```{r}
+# Histogram of Alcohol consumption
+histogram_alcohol <- ggplot(data, aes(x = Alcohol.consumption)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black", alpha = 0.7) +
+ geom_density(aes(y = ..count.. * 1), color = "red", fill = "red", alpha = 0.2) + 
+  ggtitle("Histogram and KDE of Alcohol Consumption") +
+  labs(x = "Alcohol Consumption in multiples of 30 ml", y = "Frequency") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(histogram_alcohol)
+
+# Empirical Cumulative Distribution Function (ECDF) of Alcohol consumption
+ecdf_alcohol <- ggplot(data, aes(x = Alcohol.consumption)) +
+  stat_ecdf(geom = "step", color = "blue") +
+  ggtitle("ECDF of Alcohol Consumption") +
+  labs(x = "Alcohol Consumption in multiples of 30 ml", y = "Cumulative Probability") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(ecdf_alcohol)
+
+```
+
+
+
+```{r}
+# Histogram of Exercise Frequency
+histogram_exercise_frequency <- ggplot(data, aes(x = Exercise.frequency)) +
+  geom_histogram(bins = 5, fill = "skyblue", color = "black", alpha = 0.7) +
+ geom_density(aes(y = ..count.. * 1), color = "red", fill = "red", alpha = 0.2) + 
+  ggtitle("Histogram and KDE of  Exercise Frequency") +
+  labs(x = "Exercise Frequency", y = "Count") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(histogram_exercise_frequency)
+
+# Empirical Cumulative Distribution Function (ECDF) of Exercise Frequency
+ecdf_exercise_frequency <- ggplot(data, aes(x = Exercise.frequency)) +
+  stat_ecdf(geom = "step", color = "blue") +
+  ggtitle("ECDF of Exercise Frequency") +
+  labs(x = "Exercise Frequency", y = "Cumulative Probability") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(ecdf_exercise_frequency)
+
+
+```
+
+```{r}
+# Histogram of Sleep Efficiency
+histogram_sleep_efficiency <- ggplot(data, aes(x = Sleep.efficiency)) +
+  geom_histogram(bins = 10, fill = "skyblue", color = "black", alpha = 0.7) +
+ 
+  ggtitle("Histogram of  Sleep Efficiency") +
+  labs(x = "Sleep Efficiency", y = "Count") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(histogram_sleep_efficiency)
+
+# Empirical Cumulative Distribution Function (ECDF) of Sleep Efficiency
+ecdf_sleep_efficiency <- ggplot(data, aes(x = Sleep.efficiency)) +
+  stat_ecdf(geom = "step", color = "blue") +
+  ggtitle("ECDF of Sleep Efficiency") +
+  labs(x = "Sleep Efficiency", y = "Cumulative Probability") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(ecdf_sleep_efficiency)
+
+```
+
+```{r}
+# Boxplot of Age
+boxplot_age <- ggplot(data, aes(x = "", y = Age)) +
+  geom_boxplot(fill = "skyblue", color = "black", alpha = 0.7) +
+  ylab("Age") +
+  ggtitle("Boxplot of Age") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(boxplot_age)
+
+```
+
+```{r}
+# Boxplot of Sleep Duration
+boxplot_sleep_duration <- ggplot(data, aes(x = "", y = Sleep.duration)) +
+  geom_boxplot(fill = "skyblue", color = "black", alpha = 0.7) +
+  ylab("Sleep Duration") +
+  ggtitle("Boxplot of Sleep Duration") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(boxplot_sleep_duration)
+
+```
+
+```{r}
+# Boxplot of REM Sleep Percentage
+boxplot_rem_sleep_percentage <- ggplot(data, aes(x = "", y = REM.sleep.percentage)) +
+  geom_boxplot(fill = "skyblue", color = "black", alpha = 0.7) +
+  ylab("REM Sleep Percentage") +
+  ggtitle("Boxplot of REM Sleep Percentage") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(boxplot_rem_sleep_percentage)
+
+```
+
+```{r}
+# Boxplot of Deep Sleep Percentage
+boxplot_deep_sleep_percentage <- ggplot(data, aes(x = "", y = Deep.sleep.percentage)) +
+  geom_boxplot(fill = "skyblue", color = "black", alpha = 0.7) +
+  xlab("") +
+  ylab("Deep Sleep Percentage") +
+  ggtitle("Boxplot of Deep Sleep Percentage") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(boxplot_deep_sleep_percentage)
+
+```
+
+```{r}
+# Boxplot of Light Sleep Percentage
+boxplot_light_sleep_percentage <- ggplot(data, aes(x = "", y = Light.sleep.percentage)) +
+  geom_boxplot(fill = "skyblue", color = "black", alpha = 0.7) +
+  xlab("") +
+  ylab("Light Sleep Percentage") +
+  ggtitle("Boxplot of Light Sleep Percentage") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(boxplot_light_sleep_percentage)
+
+```
+
+```{r}
+# Boxplot of Awakenings
+boxplot_awakenings <- ggplot(data, aes(x = "", y = Awakenings)) +
+  geom_boxplot(fill = "skyblue", color = "black", alpha = 0.7) +
+  xlab("") +
+  ylab("Awakenings") +
+  ggtitle("Boxplot of Awakenings") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(boxplot_awakenings)
+
+```
+
+```{r}
+# Boxplot of Sleep Efficiency
+boxplot_sleep_efficiency <- ggplot(data, aes(x = "", y = Sleep.efficiency)) +
+  geom_boxplot(fill = "skyblue", color = "black", alpha = 0.7) +
+  xlab("") +
+  ylab("Sleep Efficiency") +
+  ggtitle("Boxplot of Sleep Efficiency") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(boxplot_sleep_efficiency)
+
+```
+
+```{r}
+# Boxplot of Caffeine Consumption
+boxplot_caffeine <- ggplot(data, aes(x = "", y = Caffeine.consumption)) +
+  geom_boxplot(fill = "skyblue", color = "black", alpha = 0.7) +
+  xlab("") +
+  ylab("Caffeine Consumption") +
+  ggtitle("Boxplot of Caffeine Consumption") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(boxplot_caffeine)
+
+```
+
+```{r}
+# Boxplot of Alcohol Consumption
+boxplot_alcohol <- ggplot(data, aes(x = "", y = Alcohol.consumption)) +
+  geom_boxplot(fill = "skyblue", color = "black", alpha = 0.7) +
+  xlab("") +
+  ylab("Alcohol Consumption") +
+  ggtitle("Boxplot of Alcohol Consumption") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(boxplot_alcohol)
+
+```
+
+```{r}
+# Boxplot of Exercise Frequency
+boxplot_exercise <- ggplot(data, aes(x = "", y = Exercise.frequency)) +
+  geom_boxplot(fill = "skyblue", color = "black", alpha = 0.7) +
+  xlab("") +
+  ylab("Exercise Frequency") +
+  ggtitle("Boxplot of Exercise Frequency") +
+  theme_minimal() +
+  theme(axis.text = element_text(size = 12), axis.title = element_text(size = 14), 
+        title = element_text(size = 16, face = "bold"))
+
+print(boxplot_exercise)
+
+```
+
+
+# Converting Categorical to Numbers
+```{r}
+data$Gender[data$Gender == 'Female'] <- 0
+data$Gender[data$Gender == 'Male'] <- 1
+```
+
+```{r}
+data$Smoking.status[data$Smoking.status == 'No'] <- 0
+data$Smoking.status[data$Smoking.status == 'Yes'] <- 1
+```
+
+```{r}
+data$Smoking.status <- as.integer(data$Smoking.status)
+head(data)
+```
+
+```{r}
+library(dplyr)
+
+x <- data %>%
+  mutate(Gender = as.numeric(Gender)) %>%
+  select(-ID)
+
+
+```
+
+```{r}
+library(dplyr)
+
+numeric_columns <- x %>%
+  select_if(is.numeric)
+
+```
+
+```{r}
+head(numeric_columns)
+```
+# Bivariate Analysis
+
+# Correlation Analysis
+
+```{r}
+res <- cor(numeric_columns, method = "pearson", use = "complete.obs")
+library(corrplot)
+
+# Choose a different color palette, for example, "RdYlBu" (Red-Yellow-Blue)
+col_palette <- colorRampPalette(c("#D73027", "#4575B4"))(100)
+
+corrplot(res, type = "upper", order = "hclust",
+         tl.col = "black", tl.srt = 90, col = col_palette)
+```
+
+
+# Realtionship between sleep efficiency and strongly correlated variables
+
+
+```{r}
+ggplot(data, aes(x = Awakenings, y = Sleep.efficiency)) +
+  geom_point(alpha = 0.7, size = 3, color = "skyblue") +
+  geom_jitter(width = 0.2, height = 0, color = "darkblue", alpha = 0.3) +
+  geom_smooth(method = "loess", color = "darkred", size = 1.2, se = FALSE) +
+  labs(
+    title = "Relationship Between Awakenings and Sleep Efficiency",
+    x = "Awakenings",
+    y = "Sleep Efficiency"
+  ) +
+  theme_minimal()
+
+```
+```{r}
+head(data)
+```
+
+
+```{r}
+ggplot(data, aes(x = Light.sleep.percentage, y = Sleep.efficiency)) +
+  geom_point(alpha = 0.7, size = 3, color = "skyblue") +
+  geom_jitter(width = 0.2, height = 0, color = "darkblue", alpha = 0.3) +
+  geom_smooth(method = "loess", color = "darkred", size = 1.2, se = FALSE) +
+  labs(
+    title = "Relationship Between Light.sleep.percentage and Sleep Efficiency",
+    x = "Light.sleep.percentage",
+    y = "Sleep Efficiency"
+  ) +
+  theme_minimal()
+```
+
+```{r}
+ggplot(data, aes(x = Exercise.frequency, y = Sleep.efficiency)) +
+  geom_point(alpha = 0.7, size = 3, color = "skyblue") +
+  geom_jitter(width = 0.2, height = 0, color = "darkblue", alpha = 0.3) +
+  geom_smooth(method = "loess", color = "darkred", size = 1.2, se = FALSE) +
+  labs(
+    title = "Relationship Between Exercise.frequency and Sleep Efficiency",
+    x = "Exercise.frequency",
+    y = "Sleep Efficiency"
+  ) +
+  theme_minimal()
+
+```
+
+```{r}
+ggplot(data, aes(x = Alcohol.consumption, y = Sleep.efficiency)) +
+  geom_point(alpha = 0.7, size = 3, color = "skyblue") +
+  geom_jitter(width = 0.2, height = 0, color = "darkblue", alpha = 0.3) +
+  geom_smooth(method = "loess", color = "darkred", size = 1.2, se = FALSE) +
+  labs(
+    title = "Relationship Between Alcohol.consumption and Sleep Efficiency",
+    x = "Alcohol.consumption",
+    y = "Sleep Efficiency"
+  ) +
+  theme_minimal()
+```
+```{r}
+ggplot(data, aes(x = Deep.sleep.percentage, y = Sleep.efficiency)) +
+  geom_point(alpha = 0.7, size = 3, color = "skyblue") +
+  geom_jitter(width = 0.2, height = 0, color = "darkblue", alpha = 0.3) +
+  geom_smooth(method = "loess", color = "darkred", size = 1.2, se = FALSE) +
+  labs(
+    title = "Relationship Between Deep.sleep.percentage and Sleep Efficiency",
+    x = "Deep.sleep.percentage",
+    y = "Sleep Efficiency"
+  ) +
+  theme_minimal()
+```
+
+
+#Trivariate Analysis
+Sleep efficiency vs Duration wrt gender
+
+```{r}
+# Beautified code
+library(ggplot2)
+
+data$age_bins <- cut(data$Age, breaks = seq(0, 100, by = 20), right = FALSE)
+
+ggplot(data, aes(x = Sleep.duration, y = Sleep.efficiency, color = Gender)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, size = 1, linetype = 'solid', color = 'blue') +
+  labs(x = "Sleep Duration", y = "Sleep Efficiency") +
+  ggtitle("Relationship Between Sleep Duration and Sleep Efficiency by Gender") +  # Add the title here
+  theme_minimal() +
+  theme(legend.position = "top") +
+  facet_wrap(~ Gender, scales = "free")
+
+
+
+
+```
+
+
+```{r}
+
+library(ggplot2)
+
+data$age_bins <- cut(data$Age, breaks = seq(0, 100, by = 20), right = FALSE)
+
+ggplot(data, aes(x = Sleep.duration, y = Sleep.efficiency, color = Gender)) +
+  geom_point() +
+  geom_smooth(data = subset(data, Gender == "Male"), method = "loess", 
+              se = FALSE, size = 1, linetype = 'solid', color = 'green') +
+  geom_smooth(data = subset(data, Gender == "Female"), method = "loess", 
+              se = FALSE, size = 1, linetype = 'solid', color = 'orange') +
+  labs(x = "Sleep Duration", y = "Sleep Efficiency") +
+  ggtitle("Relationship Between Sleep Duration and Sleep Efficiency by Gender") +  
+  theme_minimal() +
+  theme(legend.position = "top") +
+  scale_color_manual(values = c('green', 'orange')) +  # Use custom colors for Male and Female
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels for better readability
+
+```
+
+
+# Light Sleep vs Efficiency Wrt Gender
+
+```{r}
+library(ggplot2)
+
+ggplot(data, aes(x = Light.sleep.percentage, y = Sleep.efficiency, color = Gender)) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_smooth(method = "loess", se = FALSE, size = 1, linetype = 'solid', color = 'blue') +
+  labs(x = "Light Sleep Percentage", y = "Sleep Efficiency") +
+  ggtitle("Relationship Between Light Sleep Percentage and Sleep Efficiency by Gender") +  # Add the title here
+  theme_minimal() +
+  theme(legend.position = "top") +
+  facet_wrap(~ Gender, scales = "free")
+
+```
+
+```{r}
+data$Smoking.binary <- as.integer(data$Smoking.status == "1")
+
+```
+
+```{r}
+library(ggplot2)
+
+ggplot(data, aes(x = REM.sleep.percentage, y = Sleep.efficiency, color = Gender)) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_smooth(method = "loess", se = FALSE, size = 1, linetype = 'solid', color = 'blue') +
+  labs(x = "REM Sleep Percentage", y = "Sleep Efficiency") +
+  ggtitle("Relationship Between REM Sleep Percentage and Sleep Efficiency by Gender") +  # Add the title here
+  theme_minimal() +
+  theme(legend.position = "top") +
+  facet_wrap(~ Gender, scales = "free")
+
+
+```
+
+# Awakenings vs Caffeine Consumption keeping sleep efficiency as the variable
+```{r}
+library(ggplot2)
+
+ggplot(data, aes(x = Awakenings, y = Caffeine.consumption, color = Sleep.efficiency)) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_jitter() +
+  geom_smooth(method = "loess", se = FALSE, size = 1, linetype = 'solid') +
+  xlab("Awakenings") +
+  ylab("Caffeine Consumption") +
+  labs(color = "Sleep Efficiency") +
+  theme_minimal()
+
+```
+
+# Trying another plot for the above graph
+```{r}
+library(ggplot2)
+
+ggplot(data, aes(x = Caffeine.consumption, y = Sleep.efficiency, color = Sleep.efficiency)) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_jitter() +
+  geom_smooth(method = "loess", se = FALSE, size = 1, linetype = 'solid') +
+  xlab("Caffeine Consumption") +
+  ylab("Sleep Efficiency") +
+  labs(color = "Sleep Efficiency") +
+  ggtitle("Relation Between Caffeine Consumption and Sleep Efficiency by Awakenings") +  # Add the title here
+  theme_minimal() +
+  facet_wrap(~ Awakenings, scales = "free")
+
+
+```
+#####################################################################################################################################
+# Smoking vs Caffeine consumption
+```{r}
+library(ggplot2)
+
+ggplot(data, aes(x = Smoking.status, y = Caffeine.consumption, color = factor(Awakenings))) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_jitter() +
+  geom_smooth(method = "loess", se = FALSE, size = 1, linetype = 'solid') +
+  xlab("Smoking Status") +
+  ylab("Caffeine Consumption") +
+  labs(color = "Awakenings") +
+  theme_minimal()
+
+```
+#Trying new plot
+```{r}
+library(ggplot2)
+
+ggplot(data, aes(x = Awakenings, y = Caffeine.consumption, color = factor(Smoking.status))) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_jitter() +
+  geom_smooth(method = "loess", se = FALSE, size = 1, linetype = 'solid') +
+  xlab("Awakenings") +
+  ylab("Caffeine Consumption") +
+  labs(color = "Smoking.status") +
+  theme_minimal() +
+  facet_grid(Smoking.status ~ ., scales = "free_x") +  # Facet by Smoking Status on the x-axis and Awakenings on the y-axis
+  ggtitle("Relation Between Awakenings, Caffeine Consumption, and Smoking Status")
+
+
+
+```
+
+
+This code creates a new variable Smoking.Caffine.Alcohol in the data dataframe based on certain conditions. Here's an explanation of the code:
+
+data$Smoking.status == "Yes": Checks if the value in the 'Smoking.status' column is "Yes."
+data$Caffeine.consumption != 'NA' & data$Caffeine.consumption > 1: Checks if the 'Caffeine.consumption' column is not 'NA' and its value is greater than 1.
+data$Alcohol.consumption != 'NA' & data$Alcohol.consumption > 1: Checks if the 'Alcohol.consumption' column is not 'NA' and its value is greater than 1.
+
+```{r}
+data$Smoking.Caffine.Alcohol = ifelse(data$Smoking.status == "Yes" | (data$Caffeine.consumption != 'NA' & data$Caffeine.consumption > 1) | (data$Alcohol.consumption != 'NA' & data$Alcohol.consumption > 1) , 1, 0)
+```
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+# Remove NA values from Smoking.Caffine.Alcohol
+data_filtered <- data %>% 
+  filter(!is.na(Smoking.Caffine.Alcohol))
+
+ggplot(data_filtered, aes(x = Sleep.duration, y = Sleep.efficiency, color = Awakenings)) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_smooth(method = "loess", se = FALSE, size = 1, linetype = 'solid', color = 'blue') +
+  labs(
+    title = "Relation bw Sleep Duration vs Sleep Efficiency by Smoking, Caffeine Alcohol",
+    x = "Sleep Duration",
+    y = "Sleep Efficiency",
+    color = "Awakenings"
+  ) +
+  theme_minimal() +
+  facet_grid(. ~ Smoking.Caffine.Alcohol, scales = "free")
+
+
+
+```
+#############################################################################################################################################
+
+
+```{r}
+# Assuming 'Gender' is a factor variable in your data
+data$Gender <- factor(data$Gender)
+
+# Load necessary library
+library(vcd)
+
+# Create a mosaic plot using vcd package with custom styling
+mosaic_plot <- mosaic(~ Sleep.efficiency + Gender, data,
+                      gp = gpar(col = "blue", fontsize = 12),
+                      main = "Mosaic Plot of Sleep Efficiency by Gender")
+
+print(mosaic_plot)
+
+```
+
+```{r}
+library(dplyr)
+library(lubridate)
+
+
+data <- data %>%
+  mutate(
+    Bedtime.number = hour(strptime(Bedtime, format = "%d-%m-%Y %H:%M")),
+    Wakeup.time.number = hour(strptime(Wakeup.time, format = "%d-%m-%Y %H:%M"))
+  )
+
+
+
+```
+
+
+
+```{r}
+library(ggplot2)
+
+ggplot(data, aes(x = Bedtime.number)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black", alpha = 0.7) +
+  labs(x = "Bedtime in 24h format", y = "Frequency") +
+  ggtitle("Histogram of Bedtime") +
+  theme_minimal()
+
+```
+
+```{r}
+library(ggplot2)
+
+ggplot(data, aes(x = Wakeup.time.number)) +
+  geom_histogram(binwidth = 1, fill = "skyblue", color = "black", alpha = 0.7) +
+  labs(x = "Wakeup time in am format", y = "Frequency") +
+  ggtitle("Histogram of Wakeup Time") +
+  theme_minimal()
+
+```
+```{r}
+
+
+
+ggplot(data, aes(x = Bedtime.number, y = Sleep.efficiency)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, color = "blue") +  # Add loess smooth line
+  #facet_wrap(~Bedtime.number, scales = "free") +  # Facet by Bedtime.number
+  labs(
+    title = "Sleep Efficiency vs. Bedtime.number",
+    x = "Bedtime number",
+    y = "Sleep Efficiency"
+  )
+
+
+
+
+
+```
+```{r}
+selected_wake_times <- c(5,6, 7, 8, 9,10)
+subset_data <- subset(data, Wakeup.time.number %in% selected_wake_times)
+ggplot(subset_data, aes(x = Wakeup.time.number, y = Sleep.efficiency)) +
+  geom_point() +
+  geom_smooth(method = "loess", se = FALSE, color = "blue") +  # Add loess smooth line
+  #facet_grid(~ Wakeup.time.number, scales = "free", space = "free") +  # Facet only by Wakeup.time.number
+  labs(
+    title = "Sleep Efficiency vs. Wakeup time number Faceted by Wakeup Time",
+    x = "Wakeup.time.number",
+    y = "Sleep Efficiency"
+  )
+```
+
+```{r}
+data$Sleep.efficiency = ifelse(data$Sleep.efficiency > 0.8 , 1, 0)
+```
+
+
+
+```{r}
+
+mosaic_plot <- mosaic(~ Sleep.efficiency + Smoking.Caffine.Alcohol, data,
+                      gp = gpar(col = "blue", fontsize = 12),
+                      main = "Mosaic Plot of Sleep Efficiency,Smoking,Caffeine,Alcohol",
+                      xlab = "Smoking, Caffeine, Alcohol",
+                      ylab = "Sleep Efficiency",
+                      col = c("red", "green"))  # Set custom colors
+
+print(mosaic_plot)
+
+```
+
+```{r}
+mosaic_plot <- mosaic(~ Exercise.frequency + Sleep.efficiency, data,
+                      gp = gpar(col = "blue", fontsize = 12),
+                      main = "Mosaic Plot of Exercise Frequency and Sleep Efficiency",
+                      xlab = "Exercise Frequency",
+                      ylab = "Sleep Efficiency",
+                      col = c("red", "green")) 
+print(mosaic_plot)
+```
+
+
+
+```{r}
+ggplot(data, aes(x = Awakenings, y=Sleep.efficiency, color = Exercise.frequency)) +
+  geom_point() + geom_jitter()+
+geom_smooth(method = "loess", se = FALSE) + 
+  xlab("Awakenings") +
+  ylab("Sleep Efficiency") +
+  labs(color = "Exercise Frequency")
+```
+
+#################################################################
+Finally fitting a model with binary response variables
+### Linear model: With real variables We will fit a regression model 
+
+-------------------------------------------------------------------------------------------------------------------------------------------
+
+```{r}
+df<-read.csv('Sleep_Efficiency.csv')
+```
+
+```{r}
+library(dplyr)
+df <- df %>% select(-ID)
+```
+
+```{r}
+library(dplyr)
+df <- df %>%
+  mutate(Smoking.status = ifelse(Smoking.status == 'Yes', 1, 0))
+df <- df %>%
+  mutate(Gender = ifelse(Gender == 'Male', 1, 0))
+df <- df %>%
+  mutate(
+    Bedtime.number = hour(strptime(Bedtime, format = "%d-%m-%Y %H:%M")),
+    Wakeup.time.number = hour(strptime(Wakeup.time, format = "%d-%m-%Y %H:%M"))
+  )
+
+```
+
+```{r}
+# Assuming your dataframe is named 'df'
+missing_counts <- colSums(is.na(df))
+print(missing_counts)
+
+```
+
+```{r}
+
+# Fill missing values in 'Awakenings' with the minimum value
+df$Awakenings <- ifelse(is.na(df$Awakenings), min(df$Awakenings, na.rm = TRUE), df$Awakenings)
+
+# Fill missing values in 'Caffeine consumption' with the mean value
+df <- df %>%
+  mutate(`Caffeine.consumption` = if_else(is.na(`Caffeine.consumption`), mean(`Caffeine.consumption`, na.rm = TRUE), `Caffeine.consumption`))
+
+# Fill missing values in 'Alcohol consumption' with the mean value
+df <- df %>%
+  mutate(`Alcohol.consumption` = if_else(is.na(`Alcohol.consumption`), mean(`Alcohol.consumption`, na.rm = TRUE), `Alcohol.consumption`))
+
+# Fill missing values in 'Exercise frequency' with the mean value
+df <- df %>%
+  mutate(`Exercise.frequency` = if_else(is.na(`Exercise.frequency`), mean(`Exercise.frequency`, na.rm = TRUE), `Exercise.frequency`))
+
+```
+
+```{r}
+head(df)
+```
+```{r}
+df_1=df
+```
+
+```{r}
+df_1$Smoking.Caffine.Alcohol = ifelse(df_1$Smoking.status == "Yes" | (df_1$Caffeine.consumption != 'NA' & df_1$Caffeine.consumption > 1) | (df_1$Alcohol.consumption != 'NA' & df_1$Alcohol.consumption > 1) , 1, 0)
+```
+
+```{r}
+head(df_1)
+```
+## Fitting model without interactions
+```{r}
+sleep.linear.model.wi = lm(Sleep.efficiency ~  Deep.sleep.percentage + Awakenings + Smoking.Caffine.Alcohol + Exercise.frequency, data = df_1)
+df_1$linear.se.predicted.wi = sleep.linear.model.wi$fitted.values
+```
+
+```{r}
+library(ggplot2)
+
+ggplot(df_1, aes(x = Sleep.efficiency, y = linear.se.predicted.wi)) +
+  geom_point(alpha = 0.7, size = 3, color = "skyblue") +
+  geom_abline(intercept = 0, slope = 1, color = "red", linetype = "dashed", size = 1) +
+  geom_segment(aes(xend = Sleep.efficiency, yend = linear.se.predicted.wi), 
+               color = "gray", alpha = 0.5, size = 0.5) +
+  ggtitle("Actual vs. Predicted Sleep Efficiency") +
+  xlab("Actual Sleep Efficiency") +
+  ylab("Predicted Sleep Efficiency") +
+  theme_minimal() +
+  theme(legend.position = "none")  # Optional: remove legend if not needed
+```
+
+```{r}
+ggplot(df_1, aes(x = Sleep.efficiency, y = linear.se.predicted.wi)) +
+  geom_point(alpha = 0.5, size = 3, color = "skyblue") +
+  geom_smooth(method = "loess", se = FALSE, color = "red", size = 1) +
+  ggtitle("Smooth Scatter Plot of Actual vs. Predicted Sleep Efficiency") +
+  xlab("Actual Sleep Efficiency") +
+  ylab("Predicted Sleep Efficiency") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+```{r}
+r_squared <- summary(sleep.linear.model.wi)$r.squared
+cat("R-squared: ", r_squared, "\n")
+
+# Root Mean Squared Error (RMSE)
+rmse <- sqrt(mean((df_1$Sleep.efficiency - df_1$linear.se.predicted.wi)^2))
+cat("RMSE: ", rmse, "\n")
+```
+# Fitting with interactions
+
+```{r}
+sleep.linear.model = lm(Sleep.efficiency ~  Deep.sleep.percentage * Awakenings * 
+                          Smoking.Caffine.Alcohol * Exercise.frequency, data = df_1)
+df_1$linear.se.predicted = sleep.linear.model$fitted.values
+```
+
+```{r}
+summary(sleep.linear.model)
+```
+```{r}
+
+residuals <- resid(sleep.linear.model)
+
+# Create a blank plot to set up the axis
+plot(1, type = "n", xlab = "", ylab = "", main = "", xlim = c(-2, 2), ylim = c(-2, 2))
+
+# Create QQ plot
+qqnorm(residuals)
+qqline(residuals, col = "red")
+
+# Add title and labels
+title("QQ Plot of Residuals", line = 0.5)  # Adjust 'line' parameter for title position
+xlabel <- "Theoretical Quantiles"
+ylabel <- "Sample Quantiles"
+mtext(xlabel, side = 1, line = 3)
+mtext(ylabel, side = 2, line = 3)
+
+
+```
+```{r}
+colnames(df_1)
+```
+
+
+```{r}
+library(ggplot2)
+
+ggplot(df_1, aes(x = Sleep.efficiency, y = linear.se.predicted)) +
+  geom_point(alpha = 0.7, size = 3, color = "skyblue") +
+  geom_abline(intercept = 0, slope = 1, color = "red", linetype = "dashed", size = 1) +
+  geom_segment(aes(xend = Sleep.efficiency, yend = linear.se.predicted), 
+               color = "gray", alpha = 0.5, size = 0.5) +
+  ggtitle("Actual vs. Predicted Sleep Efficiency") +
+  xlab("Actual Sleep Efficiency") +
+  ylab("Predicted Sleep Efficiency") +
+  theme_minimal() +
+  theme(legend.position = "none")  # Optional: remove legend if not needed
+
+
+  
+```
+```{r}
+ggplot(df_1, aes(x = Sleep.efficiency, y = linear.se.predicted)) +
+  geom_point(alpha = 0.5, size = 3, color = "skyblue") +
+  geom_smooth(method = "loess", se = FALSE, color = "red", size = 1) +
+  ggtitle("Smooth Scatter Plot of Actual vs. Predicted Sleep Efficiency") +
+  xlab("Actual Sleep Efficiency") +
+  ylab("Predicted Sleep Efficiency") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+
+```
+
+
+```{r}
+r_squared <- summary(sleep.linear.model)$r.squared
+cat("R-squared: ", r_squared, "\n")
+
+# Root Mean Squared Error (RMSE)
+rmse <- sqrt(mean((df_1$Sleep.efficiency - df_1$linear.se.predicted)^2))
+cat("RMSE: ", rmse, "\n")
+```
+# Mixing both the models
+```{r}
+sleep.linear.model.mix = lm(Sleep.efficiency ~  Deep.sleep.percentage * Awakenings * Smoking.Caffine.Alcohol * Exercise.frequency+Deep.sleep.percentage+Awakenings+Smoking.Caffine.Alcohol+Exercise.frequency, data = df_1)
+df_1$linear.se.predicted.mix = sleep.linear.model$fitted.values
+```
+
+```{r}
+ggplot(df_1, aes(x = Sleep.efficiency, y = linear.se.predicted.mix)) +
+  geom_point(alpha = 0.5, size = 3, color = "skyblue") +
+  geom_smooth(method = "loess", se = FALSE, color = "red", size = 1) +
+  ggtitle("Smooth Scatter Plot of Actual vs. Predicted Sleep Efficiency") +
+  xlab("Actual Sleep Efficiency") +
+  ylab("Predicted Sleep Efficiency") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+```{r}
+r_squared <- summary(sleep.linear.model.mix)$r.squared
+cat("R-squared: ", r_squared, "\n")
+
+# Root Mean Squared Error (RMSE)
+rmse <- sqrt(mean((df_1$Sleep.efficiency - df_1$linear.se.predicted.mix)^2))
+cat("RMSE: ", rmse, "\n")
+```
+
+```{r}
+```
+
+```{r}
+```
+
+# Fitting a rlm model with tukry's bisquare
+
+```{r}
+# Install and load the MASS package if not already installed
+if (!requireNamespace("MASS", quietly = TRUE)) {
+  install.packages("MASS")
+}
+library(MASS)
+
+# Fit Tukey's bisquare (robust) regression model
+sleep.rlm.model <- rlm(Sleep.efficiency ~ Deep.sleep.percentage * Awakenings * Smoking.Caffine.Alcohol * Exercise.frequency, data = df_1)
+
+# Predicted values
+df_1$rlm.se.predicted <- predict(sleep.rlm.model)
+
+# R-squared for robust regression
+r_squared_rlm <- 1 - (sum(resid(sleep.rlm.model)^2) / sum((df_1$Sleep.efficiency - mean(df_1$Sleep.efficiency))^2))
+cat("R-squared (Robust Regression): ", r_squared_rlm, "\n")
+
+# Root Mean Squared Error (RMSE) for robust regression
+rmse_rlm <- sqrt(mean((df_1$Sleep.efficiency - df_1$rlm.se.predicted)^2))
+cat("RMSE (Robust Regression): ", rmse_rlm, "\n")
+
+```
+
+```{r}
+library(ggplot2)
+
+# Assuming df_1 has both linear.se.predicted and rlm.se.predicted columns
+
+ggplot(df_1, aes(x = Sleep.efficiency, y = rlm.se.predicted)) +
+  geom_point(alpha = 0.7, size = 3, color = "skyblue") +
+  geom_abline(intercept = 0, slope = 1, color = "red", linetype = "dashed", size = 1) +
+  geom_segment(aes(xend = Sleep.efficiency, yend = rlm.se.predicted), 
+               color = "gray", alpha = 0.5, size = 0.5) +
+  ggtitle("Actual vs. Predicted Sleep Efficiency (Robust Regression)") +
+  xlab("Actual Sleep Efficiency") +
+  ylab("Predicted Sleep Efficiency") +
+  theme_minimal() +
+  theme(legend.position = "none")
+
+```
+
+```{r}
+
+# Fit the linear model
+sleep.linear.model <- lm(Sleep.efficiency ~ Deep.sleep.percentage * Awakenings * Smoking.Caffine.Alcohol * Exercise.frequency, data = df_1)
+
+# Fit the robust linear model
+sleep.rlm.model <- rlm(Sleep.efficiency ~ Deep.sleep.percentage * Awakenings * Smoking.Caffine.Alcohol * Exercise.frequency, data = df_1)
+
+# Create residuals plots for both models
+par(mfrow = c(1, 2))  # Set up a 1x2 grid for side-by-side plots
+
+# Residuals plot for the linear model
+plot(sleep.linear.model, which = 1, main = "Residuals Plot - Linear Model")
+
+# Residuals plot for the robust linear model
+plot(sleep.rlm.model, which = 1, main = "Residuals Plot - RLM")
+
+# Reset the plotting layout to default
+par(mfrow = c(1, 1))
+
+```
